@@ -1,5 +1,4 @@
-using System.Collections;
-using Gruel.CoroutineUtils;
+using System;
 using UnityEngine;
 
 namespace Gruel.Widget {
@@ -11,54 +10,55 @@ namespace Gruel.Widget {
 		/// </summary>
 		public bool Active {
 			get => _active;
-			protected set => _active = value;
+			set => SetActive(value);
 		}
-		
+
+		public bool Initialized => _initialized;
+
 		/// <summary>
 		/// Priority used to determine which Widget is rendered ontop of others.
 		/// 0 is the highest priority.
 		/// </summary>
-		public virtual int OrderPriority {
+		public int OrderPriority {
 			get => _orderPriority;
 			protected set => _orderPriority = value;
 		}
 #endregion Properties
 
 #region Fields
-		[Header("Widget Base")]
+		[Header("Widget")]
 		[SerializeField] protected int _orderPriority = 1;
 		
 		protected bool _active;
+		protected bool _initialized;
 #endregion Fields
 
 #region Public Methods
 		/// <summary>
-		/// Async initialize the widget.
+		/// Initialize widget.
 		/// </summary>
-		/// <returns></returns>
-		public Coroutine Init() {
-			return CoroutineRunner.StartCoroutine(InitCor());
+		/// <param name="onInitialized"></param>
+		public virtual void Init(Action onInitialized = null) {
+			_initialized = true;
+			onInitialized?.Invoke();
 		}
-		
-		/// <summary>
-		/// Set the widget to be active or inactive.
-		/// </summary>
-		/// <param name="active"></param>
-		/// <returns></returns>
-		public Coroutine SetActive(bool active) {
-			return CoroutineRunner.StartCoroutine(SetActiveCor(active));
-		}
-		
+
 		/// <summary>
 		/// Destroys the widget.
+		/// It's up to the widget to destroy itself.
+		/// This allows it to do any necessary cleanup or out animations before it gets destroyed.
 		/// </summary>
-		public abstract void Remove();
+		public virtual void Remove(Action onRemoved = null) {
+			Destroy(gameObject);
+			onRemoved?.Invoke();
+		}
 #endregion Public Methods
-
-#region Private Methods
-		protected abstract IEnumerator InitCor();
-		protected abstract IEnumerator SetActiveCor(bool active);
-#endregion Private Methods
+		
+#region Protected Methods
+		protected virtual void SetActive(bool active) {
+			_active = active;
+		}
+#endregion Protected Methods
 
 	}
 }

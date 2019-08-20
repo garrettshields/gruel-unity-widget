@@ -27,7 +27,6 @@ namespace Gruel.Widget {
 
 #region Public Methods
 		public void Init() {
-			// Setup instance.
 			if (_instance != null) {
 				Debug.LogError("WidgetController: There is already an instance of WidgetController!");
 				Destroy(gameObject);
@@ -45,10 +44,9 @@ namespace Gruel.Widget {
 			return CoroutineRunner.StartCoroutine(_instance.AddWidgetCor(path, onWidgetAdded));
 		}
 
-		public static Coroutine AddWidget(UnityEngine.Object loadedObject, Action<Widget> onWidgetAdded = null) {
+		public static Coroutine AddWidget(UnityEngine.Object loadedObject, Action<Widget> onWidgetAdded) {
 			Debug.Log($"WidgetController.AddWidget: loadedObject: {loadedObject}");
 		
-			// _instance.InstantiateWidget(loadedObject, onWidgetAdded);
 			return CoroutineRunner.StartCoroutine(_instance.InstantiateWidgetCor(loadedObject, onWidgetAdded));
 		}
 
@@ -77,7 +75,7 @@ namespace Gruel.Widget {
 			yield return CoroutineRunner.StartCoroutine(InstantiateWidgetCor(loadedWidgetObject, onWidgetAdded));
 		}
 
-		private IEnumerator InstantiateWidgetCor(UnityEngine.Object loadedWidget, Action<Widget> onWidgetAdded = null) {
+		private IEnumerator InstantiateWidgetCor(UnityEngine.Object loadedWidget, Action<Widget> onWidgetAdded) {
 			var instantiatedObject = (GameObject)Instantiate(loadedWidget, _widgetContainer);
 			var widget = instantiatedObject.GetComponent<Widget>();
 		
@@ -85,7 +83,10 @@ namespace Gruel.Widget {
 			_widgets.Add(widget);
 		
 			// Initialize widget.
-			yield return widget.Init();
+			widget.Init();
+			while (widget.Initialized == false) {
+				yield return null;
+			}
 		
 			SortWidgets();
 		
